@@ -410,7 +410,7 @@ config LWTUNNEL
 	  with light weight tunnel state associated with fib routes.
 
 config DST_CACHE
-	bool "dst cache"
+	bool
 	default n
 
 source "net/ipc_router/Kconfig"
