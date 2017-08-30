@@ -59,6 +59,7 @@
 #include <linux/tsacct_kern.h>
 #include <linux/cn_proc.h>
 #include <linux/freezer.h>
+#include <linux/kaiser.h>
 #include <linux/delayacct.h>
 #include <linux/taskstats_kern.h>
 #include <linux/random.h>
@@ -338,7 +339,6 @@ void set_task_stack_end_magic(struct task_struct *tsk)
 	*stackend = STACK_END_MAGIC;	/* for overflow detection */
 }
 
-extern void kaiser_add_mapping(unsigned long addr, unsigned long size, unsigned long flags);
 static struct task_struct *dup_task_struct(struct task_struct *orig, int node)
 {
 	struct task_struct *tsk;
@@ -361,9 +361,9 @@ static struct task_struct *dup_task_struct(struct task_struct *orig, int node)
 
 	tsk->stack = stack;
 
-#ifdef CONFIG_KAISER
-	kaiser_add_mapping((unsigned long)tsk->stack, THREAD_SIZE, __PAGE_KERNEL);
-#endif
+	err= kaiser_add_mapping((unsigned long)tsk->stack, THREAD_SIZE, __PAGE_KERNEL);
+	if (err)
+		goto free_stack;
 #ifdef CONFIG_SECCOMP
 	/*
 	 * We must handle setting up seccomp filters once we're under
