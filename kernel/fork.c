@@ -174,9 +174,7 @@ static inline void free_thread_stack(unsigned long *stack)
 {
 	struct page *page = virt_to_page(stack);
 
-#ifdef CONFIG_KAISER
-	kaiser_remove_mapping((unsigned long)stack, THREAD_SIZE);
-#endif
+	kaiser_unmap_thread_stack(stack);
 	__free_kmem_pages(page, THREAD_SIZE_ORDER);
 }
 # else
@@ -361,7 +359,7 @@ static struct task_struct *dup_task_struct(struct task_struct *orig, int node)
 
 	tsk->stack = stack;
 
-	err= kaiser_add_mapping((unsigned long)tsk->stack, THREAD_SIZE, __PAGE_KERNEL);
+	err = kaiser_map_thread_stack(tsk->stack);
 	if (err)
 		goto free_stack;
 #ifdef CONFIG_SECCOMP
